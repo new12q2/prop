@@ -1,0 +1,131 @@
+.privacy-content {
+    max-width: 800px;
+    margin: 2rem auto;  /* Changed from 0 auto to add top margin */
+    padding: 2rem 1rem; /* Added top padding */
+}
+
+.privacy-content h1 {
+    color: var(--text-color);
+    text-align: center;
+    margin-top: 2rem;  /* Added top margin to the heading */
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
+
+.privacy-content section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.privacy-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.privacy-content p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.privacy-content ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.privacy-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+.privacy-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.privacy-content a:hover {
+    text-decoration: underline;
+}
+
+/* Header and navigation styles */
+header {
+    background: var(--background-secondary);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+nav {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+}
+
+header .logo {
+    margin: 0;  /* Remove auto margin to align left */
+}
+
+header .logo img {
+    height: 40px;
+}
+
+/* Add padding to body to prevent content from being hidden under fixed header */
+body {
+    padding-top: 80px; /* Adjust this value based on your header height */
+}
+
+/* Footer styles */
+footer {
+    background: var(--background-secondary);
+    padding: 2rem 0;
+    margin-top: 4rem;
+}
+
+.footer-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-links {
+    text-align: right;
+}
+
+.footer-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.footer-links a:hover {
+    background-color: var(--background-hover);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .privacy-content h1 {
+        font-size: 2rem;
+    }
+
+    .privacy-content section {
+        margin-top: 1rem;
+        text-align: center;
+    }
+}

@@ -1,0 +1,65 @@
+.aszf-content {
+    max-width: 800px;
+    margin: 2rem auto;  /* Added top margin */
+    padding: 2rem 1rem; /* Added top padding */
+}
+
+.aszf-content h1 {
+    color: var(--text-color);
+    text-align: center;
+    margin-top: 2rem;  /* Added top margin to the heading */
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
+
+.aszf-content section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.aszf-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.aszf-content p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.aszf-content ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.aszf-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+.aszf-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.aszf-content a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .aszf-content h1 {
+        font-size: 2rem;
+    }
+
+    .aszf-content section {
+        padding: 0.8rem;
+    }
+}
