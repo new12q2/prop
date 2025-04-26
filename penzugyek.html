@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propti - Pénzügyek Kezelése</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="penzugyek.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="propti-logo.PNG" alt="Propti Logo">
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="landlord_dashboard.html"><i class="fas fa-home"></i> Áttekintés</a>
+                <a href="ingatlanok.html"><i class="fas fa-building"></i> Ingatlanok</a>
+                <a href="berlok.html"><i class="fas fa-users"></i> Bérlők</a>
+                <a href="penzugyek.html" class="active"><i class="fas fa-money-bill-wave"></i> Pénzügyek</a>
+                <a href="karbantartas.html"><i class="fas fa-tools"></i> Karbantartás</a>
+                <a href="dokumentumok.html"><i class="fas fa-file-alt"></i> Dokumentumok</a>
+                <a href="beallitasok.html"><i class="fas fa-cog"></i> Beállítások</a>
+            </nav>
+            <div class="user-profile">
+                <div class="user-info-container">
+                    <div class="user-info">
+                        <h4 id="userDisplayName">Loading...</h4>
+                        <p>Bérlő</p>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Kijelentkezés</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Pénzügyek</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" id="newTransactionBtn">
+                        <i class="fas fa-plus"></i> Új Tranzakció
+                    </button>
+                </div>
+            </header>
+
+            <div class="finance-overview">
+                <div class="stat-card">
+                    <h3>Bevétel (Havi)</h3>
+                    <p class="amount">0 Ft</p>
+                    <span class="trend positive">0% az előző hónaphoz képest</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Kiadások (Havi)</h3>
+                    <p class="amount">0 Ft</p>
+                    <span class="trend">0% az előző hónaphoz képest</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Függő Befizetések</h3>
+                    <p class="amount">0 Ft</p>
+                    <span class="count">0 bérlő</span>
+                </div>
+            </div>
+
+            <div class="transactions-container">
+                <div class="transactions-header">
+                    <h2>Tranzakciók</h2>
+                    <button class="btn-secondary" id="exportExcelBtn">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                </div>
+                <div class="filters-container">
+                    <div class="search-filters">
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Ingatlan vagy bérlő keresése...">
+                        </div>
+                        <select class="filter-select" id="typeFilter">
+                            <option value="all">Összes tranzakció</option>
+                            <option value="income">Bevételek</option>
+                            <option value="expense">Kiadások</option>
+                        </select>
+                        <select class="filter-select" id="dateFilter">
+                            <option value="all">Teljes időszak</option>
+                            <option value="1week">Elmúlt 1 hét</option>
+                            <option value="1month">Elmúlt 1 hónap</option>
+                            <option value="3months">Elmúlt 3 hónap</option>
+                            <option value="6months">Elmúlt 6 hónap</option>
+                            <option value="1year">Elmúlt 1 év</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Dátum</th>
+                            <th>Típus</th>
+                            <th>Ingatlan</th>
+                            <th>Bérlő</th>
+                            <th>Összeg</th>
+                            <th>Státusz</th>
+                            <th>Műveletek</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Transactions will be loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Edit Payment Modal -->
+            <div class="transaction-modal" id="editTransactionModal">
+                <div class="modal-content">
+                    <h2>Tranzakció Szerkesztése</h2>
+                    <form class="transaction-form" id="editTransactionForm">
+                        <input type="hidden" id="editTransactionId" name="transactionId">
+                        <div class="form-group">
+                            <label for="editDate">Dátum*</label>
+                            <input type="date" id="editDate" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editType">Tranzakció típusa*</label>
+                            <select id="editType" name="type" required>
+                                <option value="">Válassz típust...</option>
+                                <option value="rent">Bérleti díj</option>
+                                <option value="kaucio">Kaució</option>
+                                <option value="maintenance">Karbantartás</option>
+                                <option value="utility">Rezsi</option>
+                                <option value="tax">Adó</option>
+                                <option value="insurance">Biztosítás</option>
+                                <option value="other">Egyéb</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editProperty">Ingatlan*</label>
+                            <select id="editProperty" name="property" required>
+                                <option value="">Válassz ingatlant...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTenant">Bérlő</label>
+                            <select id="editTenant" name="tenant">
+                                <option value="">Válassz bérlőt...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editAmount">Összeg (Ft)*</label>
+                            <input type="number" id="editAmount" name="amount" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="editStatus">Fizetési státusz*</label>
+                            <select id="editStatus" name="status" required>
+                                <option value="paid">Kifizetve</option>
+                                <option value="pending">Függőben</option>
+                            </select>
+                        </div>
+                        <div class="form-group optional">
+                            <label for="editDescription">Megjegyzés</label>
+                            <textarea id="editDescription" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-danger" id="deleteTransaction">Törlés</button>
+                            <button type="button" class="btn-secondary" id="editModalClose">Mégse</button>
+                            <button type="submit" class="btn-primary">Mentés</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- Transaction Modal -->
+        <div class="transaction-modal" id="transactionModal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h2>Új Tranzakció Rögzítése</h2>
+                <form class="transaction-form" id="transactionForm">
+                    <div class="form-group">
+                        <label for="date">Dátum*</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Tranzakció típusa*</label>
+                        <select id="type" name="type" required>
+                            <option value="">Válassz típust...</option>
+                            <option value="rent">Bérleti díj</option>
+                            <option value="kaucio">Kaució</option>
+                            <option value="maintenance">Karbantartás</option>
+                            <option value="utility">Rezsi</option>
+                            <option value="tax">Adó</option>
+                            <option value="insurance">Biztosítás</option>
+                            <option value="other">Egyéb</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="property">Ingatlan*</label>
+                        <select id="property" name="property" required>
+                            <option value="">Válassz ingatlant...</option>
+                            <option value="1">Petőfi u. 8</option>
+                            <option value="2">Kossuth u. 15</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tenant">Bérlő</label>
+                        <select id="tenant" name="tenant">
+                            <option value="">Válassz bérlőt...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Összeg (Ft)*</label>
+                        <input type="number" id="amount" name="amount" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Fizetési státusz*</label>
+                        <select id="status" name="status" required>
+                            <option value="paid">Kifizetve</option>
+                            <option value="pending">Függőben</option>
+                        </select>
+                    </div>
+                    <div class="form-group optional">
+                        <label for="description">Megjegyzés</label>
+                        <textarea id="description" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary modal-close">Mégse</button>
+                        <button type="submit" class="btn-primary">Mentés</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy, 
+            deleteDoc, 
+            doc, 
+            updateDoc 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJIY7HyiQ6I_opPyMCApNiKgpc9RQeTY4",
+            authDomain: "propti-2a95d.firebaseapp.com",
+            projectId: "propti-2a95d",
+            storageBucket: "propti-2a95d.appspot.com",
+            messagingSenderId: "223311863074",
+            appId: "1:223311863074:web:2783282939934089d1197b"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Create global modal handlers
+        window.modalHandlers = {
+            open: () => {
+                const modal = document.getElementById('transactionModal');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                // Reset form and set default date
+                document.getElementById('transactionForm').reset();
+                document.getElementById('date').valueAsDate = new Date();
+            },
+            close: () => {
+                const modal = document.getElementById('transactionModal');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        // Modify loadTenants to accept a target select element ID
+        async function loadTenants(userId, selectId = 'tenant') {
+            try {
+                const tenantsRef = collection(db, 'tenants');
+                const q = query(tenantsRef, where('ownerId', '==', userId));
+                const querySnapshot = await getDocs(q);
+                
+                const tenantSelect = document.getElementById(selectId);
+                tenantSelect.innerHTML = '<option value="">Válassz bérlőt...</option>';
+                
+                querySnapshot.forEach((doc) => {
+                    const tenant = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = tenant.name;
+                    tenantSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading tenants:', error);
+            }
+        }
+
+        // Modify loadProperties to accept a target select element ID
+        async function loadProperties(userId, selectId = 'property') {
+            try {
+                const propertiesRef = collection(db, 'properties');
+                const q = query(propertiesRef, where('ownerId', '==', userId));
+                const querySnapshot = await getDocs(q);
+                
+                const propertySelect = document.getElementById(selectId);
+                propertySelect.innerHTML = '<option value="">Válassz ingatlant...</option>';
+                
+                querySnapshot.forEach((doc) => {
+                    const property = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = property.location;
+                    propertySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+            }
+        }
+
+        // Function to load and display payments with tenant names and filtering functionality
+        async function loadPayments(userId, filters = {}) {
+            try {
+                const paymentsRef = collection(db, 'payments');
+                let q = query(paymentsRef, where('ownerId', '==', userId));
+
+                // Get all payments first
+                const querySnapshot = await getDocs(q);
+                const tbody = document.querySelector('.transactions-table tbody');
+                tbody.innerHTML = '';
+
+                // Get all tenants first
+                const tenantsRef = collection(db, 'tenants');
+                const tenantsQuery = query(tenantsRef, where('ownerId', '==', userId));
+                const tenantsSnapshot = await getDocs(tenantsQuery);
+                const tenantsMap = new Map();
+                
+                tenantsSnapshot.forEach(doc => {
+                    tenantsMap.set(doc.id, doc.data().name);
+                });
+
+                // Process payments
+                let monthlyIncome = 0;
+                let monthlyExpense = 0;
+                let pendingPayments = 0;
+                const currentMonth = new Date().getMonth();
+                let filteredDocs = [];
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const paymentDate = new Date(data.date);
+
+                    // Apply filters
+                    let includePayment = true;
+
+                    // Search filter
+                    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+                    if (searchQuery) {
+                        const propertyMatch = data.property.toLowerCase().includes(searchQuery);
+                        const tenantName = tenantsMap.get(data.tenant) || '';
+                        const tenantMatch = tenantName.toLowerCase().includes(searchQuery);
+                        includePayment = propertyMatch || tenantMatch;
+                    }
+
+                    // Filter by transaction type (bevételek/kiadások)
+                    if (filters.transactionType && includePayment) {
+                        if (filters.transactionType === 'income') {
+                            includePayment = (data.type === 'rent');
+                        } else if (filters.transactionType === 'expense') {
+                            includePayment = ['maintenance', 'utility', 'tax', 'insurance', 'other'].includes(data.type);
+                        }
+                    }
+
+                    // Filter by date range
+                    if (filters.dateRange && includePayment) {
+                        const now = new Date();
+                        let startDate = new Date();
+                        
+                        switch (filters.dateRange) {
+                            case '1week':
+                                startDate.setDate(now.getDate() - 7);
+                                break;
+                            case '1month':
+                                startDate.setMonth(now.getMonth() - 1);
+                                break;
+                            case '3months':
+                                startDate.setMonth(now.getMonth() - 3);
+                                break;
+                            case '6months':
+                                startDate.setMonth(now.getMonth() - 6);
+                                break;
+                            case '1year':
+                                startDate.setFullYear(now.getFullYear() - 1);
+                                break;
+                        }
+                        
+                        if (paymentDate < startDate) {
+                            includePayment = false;
+                        }
+                    }
+
+                    if (includePayment) {
+                        filteredDocs.push({ id: doc.id, data });
+                        
+                        // Update statistics only for included payments
+                        if (paymentDate.getMonth() === currentMonth) {
+                            if (data.type === 'rent') {
+                                monthlyIncome += data.amount;
+                            } else {
+                                monthlyExpense += Math.abs(data.amount);
+                            }
+                        }
+
+                        if (data.status === 'pending') {
+                            pendingPayments += Math.abs(data.amount);
+                        }
+                    }
+                });
+
+                // Sort filtered docs by date
+                filteredDocs.sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
+
+                // Display filtered results
+                filteredDocs.forEach(({ id, data }) => {
+                    const tr = document.createElement('tr');
+                    const paymentDate = new Date(data.date);
+                    const tenantName = tenantsMap.get(data.tenant) || '-';
+                    
+                    tr.innerHTML = `
+                        <td>${paymentDate.toLocaleDateString('hu-HU')}</td>
+                        <td>${getTransactionTypeName(data.type)}</td>
+                        <td>${data.property}</td>
+                        <td>${tenantName}</td>
+                        <td class="amount ${data.type === 'rent' ? 'positive' : 'negative'}">
+                            ${Math.abs(data.amount).toLocaleString()} Ft
+                        </td>
+                        <td>
+                            <span class="status ${data.status}">
+                                ${data.status === 'paid' ? 'Teljesítve' : 'Függőben'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-edit" data-id="${id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // Add edit handler
+                    tr.querySelector('.btn-edit').onclick = () => editPayment(id, data);
+                });
+
+                // Update statistics
+                updateStatistics(monthlyIncome, monthlyExpense, pendingPayments, filteredDocs);
+
+            } catch (error) {
+                console.error('Error loading payments:', error);
+                alert('Hiba történt az adatok betöltésekor');
+            }
+        }
+
+        // Function to update statistics cards
+        function updateStatistics(income, expense, pending, docs) {
+            document.querySelector('.stat-card:nth-child(1) .amount').textContent = 
+                `${income.toLocaleString()} Ft`;
+            document.querySelector('.stat-card:nth-child(2) .amount').textContent = 
+                `${expense.toLocaleString()} Ft`;
+            document.querySelector('.stat-card:nth-child(3) .amount').textContent = 
+                `${pending.toLocaleString()} Ft`;
+            document.querySelector('.stat-card:nth-child(3) .count').textContent = 
+                `${docs.filter(doc => doc.data && doc.data.status === 'pending').length} bérlő`;
+        }
+
+        // Add edit payment function
+        async function editPayment(paymentId, paymentData) {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                // Load properties and tenants first
+                await Promise.all([
+                    loadProperties(user.uid, 'editProperty'),
+                    loadTenants(user.uid, 'editTenant')
+                ]);
+
+                // Populate edit form
+                document.getElementById('editTransactionId').value = paymentId;
+                document.getElementById('editDate').value = paymentData.date;
+                document.getElementById('editType').value = paymentData.type;
+                document.getElementById('editProperty').value = paymentData.propertyId || '';
+                document.getElementById('editTenant').value = paymentData.tenant || '';
+                document.getElementById('editAmount').value = paymentData.amount;
+                document.getElementById('editStatus').value = paymentData.status;
+                document.getElementById('editDescription').value = paymentData.description || '';
+
+                // Show edit modal
+                const editModal = document.getElementById('editTransactionModal');
+                editModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } catch (error) {
+                console.error('Error preparing edit form:', error);
+                alert('Hiba történt az űrlap betöltésekor');
+            }
+        }
+
+        // Add edit form submission handler
+        document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                const paymentId = document.getElementById('editTransactionId').value;
+                const formData = new FormData(e.target);
+                const data = {
+                    date: formData.get('date'),
+                    type: formData.get('type'),
+                    propertyId: formData.get('property'),
+                    property: document.getElementById('editProperty').options[
+                        document.getElementById('editProperty').selectedIndex
+                    ].text,
+                    tenant: formData.get('tenant'),
+                    amount: parseInt(formData.get('amount')),
+                    status: formData.get('status'),
+                    description: formData.get('description') || '',
+                    updatedAt: new Date().toISOString()
+                };
+
+                await updateDoc(doc(db, 'payments', paymentId), data);
+                
+                // Close modal and reload
+                document.getElementById('editTransactionModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                await loadPayments(user.uid);
+                
+            } catch (error) {
+                console.error('Error updating payment:', error);
+                alert('Hiba történt a módosítás során');
+            }
+        });
+
+        // Add delete handler
+        document.getElementById('deleteTransaction').addEventListener('click', async () => {
+            if (confirm('Biztosan törölni szeretné ezt a tranzakciót?')) {
+                const paymentId = document.getElementById('editTransactionId').value;
+                try {
+                    await deleteDoc(doc(db, 'payments', paymentId));
+                    document.getElementById('editTransactionModal').style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    await loadPayments(auth.currentUser.uid);
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                    alert('Hiba történt a törlés során');
+                }
+            }
+        });
+
+        // Add close modal handler for edit modal
+        document.getElementById('editModalClose').addEventListener('click', () => {
+            document.getElementById('editTransactionModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        // Authentication state observer
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                await Promise.all([
+                    loadTenants(user.uid),
+                    loadProperties(user.uid)
+                ]);
+                await loadPayments(user.uid);
+            });
+
+            // Modal elements
+            const modal = document.getElementById('transactionModal');
+            const addButton = document.getElementById('newTransactionBtn');
+            const closeButtons = document.querySelectorAll('.modal-close');
+
+            // Modal event listeners
+            addButton.onclick = window.modalHandlers.open;
+            closeButtons.forEach(button => {
+                button.onclick = window.modalHandlers.close;
+            });
+            modal.onclick = (e) => {
+                if (e.target === modal) window.modalHandlers.close();
+            };
+
+            // Add filters change handlers
+            document.getElementById('typeFilter').addEventListener('change', async (e) => {
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                const filters = {
+                    transactionType: e.target.value === 'all' ? null : e.target.value,
+                    dateRange: document.getElementById('dateFilter').value === 'all' ? null : document.getElementById('dateFilter').value
+                };
+                
+                await loadPayments(user.uid, filters);
+            });
+
+            document.getElementById('dateFilter').addEventListener('change', async (e) => {
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                const filters = {
+                    dateRange: e.target.value === 'all' ? null : e.target.value,
+                    transactionType: document.getElementById('typeFilter').value === 'all' ? null : document.getElementById('typeFilter').value
+                };
+                
+                await loadPayments(user.uid, filters);
+            });
+
+            // Add search input handler
+            document.getElementById('searchInput').addEventListener('input', async (e) => {
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                const filters = {
+                    dateRange: document.getElementById('dateFilter').value === 'all' ? null : document.getElementById('dateFilter').value,
+                    transactionType: document.getElementById('typeFilter').value === 'all' ? null : document.getElementById('typeFilter').value
+                };
+                
+                await loadPayments(user.uid, filters);
+            });
+
+            // Form submission handler with tenant ID
+            const form = document.getElementById('transactionForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const user = auth.currentUser;
+                if (!user) return;
+
+                try {
+                    const formData = new FormData(form);
+                    const data = {
+                        date: formData.get('date'),
+                        type: formData.get('type'),
+                        propertyId: formData.get('property'), // Store property ID
+                        property: document.getElementById('property').options[
+                            document.getElementById('property').selectedIndex
+                        ].text, // Store property name for display
+                        tenant: formData.get('tenant'), // This is now the tenant document ID
+                        amount: parseInt(formData.get('amount')),
+                        status: formData.get('status'),
+                        description: formData.get('description') || '',
+                        ownerId: user.uid,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    await addDoc(collection(db, 'payments'), data);
+                    
+                    // Close modal using the new function
+                    window.modalHandlers.close();
+                    
+                    // Reset form
+                    form.reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                    
+                    // Reload payments
+                    await loadPayments(user.uid);
+                    
+                } catch (error) {
+                    console.error('Error saving payment:', error);
+                    alert('Hiba történt a mentés során');
+                }
+            });
+
+            // Add Excel export functionality
+            document.getElementById('exportExcelBtn').addEventListener('click', () => {
+                // Get the table data in a more structured way
+                const rows = Array.from(document.querySelectorAll('.transactions-table tbody tr'));
+                const data = rows.map(row => ({
+                    'Dátum': row.cells[0].textContent,
+                    'Típus': row.cells[1].textContent,
+                    'Ingatlan': row.cells[2].textContent,
+                    'Bérlő': row.cells[3].textContent,
+                    'Összeg': row.cells[4].textContent.replace(' Ft', ''),
+                    'Státusz': row.cells[5].textContent.trim()
+                }));
+
+                // Create worksheet
+                const ws = XLSX.utils.json_to_sheet(data);
+                
+                // Create workbook and add the worksheet
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Tranzakciók");
+                
+                // Generate Excel file name with current date
+                const date = new Date().toISOString().split('T')[0];
+                const fileName = `tranzakciok_${date}.xlsx`;
+                
+                // Save the file
+                XLSX.writeFile(wb, fileName);
+            });
+
+            // Authentication state observer
+        });
+
+        // Helper function for transaction types
+        function getTransactionTypeName(type) {
+            const types = {
+                rent: 'Bérleti díj',
+                maintenance: 'Karbantartás',
+                utility: 'Rezsi',
+                tax: 'Adó',
+                insurance: 'Biztosítás',
+                other: 'Egyéb'
+            };
+            return types[type] || type;
+        }
+    </script>
+</body>
+</html>
