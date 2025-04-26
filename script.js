@@ -65,6 +65,97 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Mobile Menu Functionality
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => {
+            navLinks.classList.toggle('mobile-active');
+            // Change menu icon
+            const icon = mobileMenuButton.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            }
+        });
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (navLinks.classList.contains('mobile-active') && 
+            !e.target.closest('.nav-links') && 
+            !e.target.closest('.mobile-menu-button')) {
+            navLinks.classList.remove('mobile-active');
+            const icon = mobileMenuButton.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    navLinks.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A') {
+            navLinks.classList.remove('mobile-active');
+            const icon = mobileMenuButton.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+    });
+
+    // Handle scroll behavior
+    let lastScroll = 0;
+    const header = document.querySelector('header');
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        
+        if (currentScroll <= 0) {
+            header.classList.remove('scroll-up');
+            header.classList.remove('scroll-down');
+            return;
+        }
+        
+        if (currentScroll > lastScroll && !header.classList.contains('scroll-down')) {
+            // Scrolling down
+            header.classList.remove('scroll-up');
+            header.classList.add('scroll-down');
+            // Close mobile menu when scrolling down
+            if (navLinks.classList.contains('mobile-active')) {
+                navLinks.classList.remove('mobile-active');
+                const icon = mobileMenuButton.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        } else if (currentScroll < lastScroll && header.classList.contains('scroll-down')) {
+            // Scrolling up
+            header.classList.remove('scroll-down');
+            header.classList.add('scroll-up');
+        }
+        lastScroll = currentScroll;
+    });
+
+    // Add some smooth scrolling for mobile navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                const headerHeight = document.querySelector('header').offsetHeight;
+                const elementPosition = target.offsetTop;
+                window.scrollTo({
+                    top: elementPosition - headerHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
     // Calculator functionality
     const options = document.querySelectorAll('.option');
     const calculatorResult = document.querySelector('.calculator-result');
