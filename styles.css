@@ -61,6 +61,7 @@ body {
     background-color: var(--bg-primary);
     scroll-behavior: smooth;
     transition: background-color 0.3s ease, color 0.3s ease;
+    padding-top: 80px; /* Add padding for fixed header */
 }
 
 header {
@@ -71,7 +72,9 @@ header {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     position: fixed;
     width: 100%;
-    z-index: 100;
+    z-index: 1000;
+    top: 0;
+    left: 0;
 }
 
 /* Header-specific logo styles */
